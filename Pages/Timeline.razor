@@ -1,35 +1,36 @@
 ﻿@page "/timeline"
 
 @using WhenTheyLived.Data
-@inject WeatherForecastService ForecastService
+@inject LifetimeService lifetimeService
 
 <h1>Weather forecast</h1>
 
 <p>This component demonstrates fetching data from a service.</p>
 
-@if (forecasts == null)
+<input value="@CurrentValue" @onchange="@((ChangeEventArgs __e) => CurrentValue =__e.Value.ToString())" />
+
+@if (lifetimes == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
+    <p>@CurrentValue</p>
     <table class="table">
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
+                <th>Name</th>
+                <th>Birth</th>
+                <th>Death</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var forecast in forecasts)
+            @foreach (var lifetime in lifetimes)
             {
                 <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
+                    <td>@lifetime.Name</td>
+                    <td>@lifetime.Birth</td>
+                    <td>@lifetime.Death</td>
                 </tr>
             }
         </tbody>
@@ -37,10 +38,15 @@ else
 }
 
 @code {
-    private WeatherForecast[] forecasts;
+
+    private string CurrentValue { get; set; }
+    private Lifetime[] lifetimes;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+        string PersonID = "Kim Il-Sung";
+        lifetimes = await lifetimeService.GetLifetimesAsync(PersonID);
     }
+
+
 }
