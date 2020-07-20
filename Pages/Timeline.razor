@@ -2,6 +2,7 @@
 
 @using WhenTheyLived.Data
 @inject LifetimeService lifetimeService
+@inject HttpClient Http
 
 <h1>Weather forecast</h1>
 
@@ -9,7 +10,37 @@
 
 <input value="@CurrentValue" @onchange="@((ChangeEventArgs e) => CurrentValue = e.Value.ToString())" />
 <button @onclick="ButtonAction">Search</button>
+
+<p>@req</p>
 <p>@StoredValue</p>
+
+@if (options == null)
+{
+    <p><em>Enter a name into the search bar above</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Birth</th>
+                <th>Death</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var lifetime in lifetimes)
+            {
+                <tr>
+                    <td>@lifetime.Name</td>
+                    <td>@lifetime.Birth</td>
+                    <td>@lifetime.Death</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
 @if (lifetimes == null)
 {
     <p><em>Loading...</em></p>
@@ -41,11 +72,27 @@ else
 
     public string CurrentValue { get; set; }
     private Lifetime[] lifetimes;
+    public Lifetime[] options;
     public string StoredValue { get; set; }
+    public string req { get; set; }
 
-    private void ButtonAction()
+
+    private async Task ButtonAction()
     {
-        StoredValue = CurrentValue;
+        string uri = "https://query.wikidata.org/sparql?query=";
+
+        string Sparql = "SELECT%20distinct%20%3Fitem%20%3FitemLabel%20%3FitemDescription%20(SAMPLE(%3FDR)%20as%20%3FDR)%20(SAMPLE(%3FRIP)%20as%20%3FRIP)%20(SAMPLE(%3Fimage)as%20%3Fimage)%20(SAMPLE(%3Farticle)as%20%3Farticle)%20WHERE%20%7B%0A%20%20%3Fitem%20wdt%3AP31%20wd%3AQ5.%0A%20%20%3Fitem%20%3Flabel%20%22" + CurrentValue + "%22%40en.%20%20%0A%20%20%3Farticle%20schema%3Aabout%20%3Fitem%20.%0A%20%20%3Farticle%20schema%3AinLanguage%20%22en%22%20.%0A%20%20%3Farticle%20schema%3AisPartOf%20%3Chttps%3A%2F%2Fen.wikipedia.org%2F%3E.%20%20%0A%20%20OPTIONAL%7B%3Fitem%20wdt%3AP569%20%3FDR%20.%7D%20%23%20P569%20%3A%20Date%20of%20birth%0A%20%20OPTIONAL%7B%3Fitem%20wdt%3AP570%20%3FRIP%20.%7D%20%20%20%20%20%23%20P570%20%3A%20Date%20of%20death%0A%20%20OPTIONAL%7B%3Fitem%20wdt%3AP18%20%3Fimage%20.%7D%20%20%20%20%20%23%20P18%20%3A%20image%20%20%0A%09%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22en%22.%20%7D%20%20%20%20%0A%7D%0AGROUP%20BY%20%3Fitem%20%3FitemLabel%20%3FitemDescription";
+
+        req = uri.ToString() + Sparql;
+
+        var client = new HttpClient();
+        client.DefaultRequestHeaders.Add("Accept", "application/sparql-results+json");
+        client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36");
+
+        var response = await client.GetStringAsync(uri.ToString() + Sparql);
+        StoredValue = response.ToString();
+
+
     }
 
     protected override async Task OnInitializedAsync()
@@ -53,6 +100,5 @@ else
         string PersonID = "Kim Il-Sung";
         lifetimes = await lifetimeService.GetLifetimesAsync(PersonID);
     }
-
 
 }

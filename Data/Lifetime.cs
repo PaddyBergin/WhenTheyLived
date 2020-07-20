@@ -7,5 +7,6 @@ namespace WhenTheyLived.Data
         public DateTime Birth { get; set; }
         public DateTime Death { get; set; }
         public string Name { get; set; }
+        public string imgurl { get; set; }
     }
 }
