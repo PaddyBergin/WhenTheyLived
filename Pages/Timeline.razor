@@ -7,15 +7,15 @@
 
 <p>This component demonstrates fetching data from a service.</p>
 
-<input value="@CurrentValue" @onchange="@((ChangeEventArgs __e) => CurrentValue =__e.Value.ToString())" />
-
+<input value="@CurrentValue" @onchange="@((ChangeEventArgs e) => CurrentValue = e.Value.ToString())" />
+<button @onclick="ButtonAction">Search</button>
+<p>@StoredValue</p>
 @if (lifetimes == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <p>@CurrentValue</p>
     <table class="table">
         <thead>
             <tr>
@@ -39,8 +39,14 @@ else
 
 @code {
 
-    private string CurrentValue { get; set; }
+    public string CurrentValue { get; set; }
     private Lifetime[] lifetimes;
+    public string StoredValue { get; set; }
+
+    private void ButtonAction()
+    {
+        StoredValue = CurrentValue;
+    }
 
     protected override async Task OnInitializedAsync()
     {
